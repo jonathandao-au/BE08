@@ -6,12 +6,6 @@ public class Database {
 
 	static final ArrayList<Shop> Shop_DB = new ArrayList<>();
 
-	// Vouchers
-	static final String[] VoucherCodes = { "10PCT", "5DOLLAR", "FREESHIP", "SHIP3" };
-	static final String[] VoucherTargets = { "subtotal", "subtotal", "shipping", "shipping" };
-	static final String[] VoucherModes = { "percent", "amount", "amount", "amount" };
-	static final double[] VoucherValues = { 0.10, 5.0, 999.0, 3.0 };
-
 	static {
 		Product[] shopAProducts = new Product[4];
 		shopAProducts[0] = new Product("Flower", 3);
@@ -43,14 +37,5 @@ public class Database {
 			}
 		}
 		return null;
-	}
-
-	public static int getVoucherIndex(String code) {
-		for (int i = 0; i < VoucherCodes.length; i++) {
-			if (VoucherCodes[i].equals(code)) {
-				return i;
-			}
-		}
-		return -1;
 	}
 }

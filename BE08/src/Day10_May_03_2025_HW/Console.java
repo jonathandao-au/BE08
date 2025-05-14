@@ -2,6 +2,8 @@ package Day10_May_03_2025_HW;
 
 import java.util.Scanner;
 
+import OOP.Voucher;
+
 public class Console {
 	static Scanner scanner = new Scanner(System.in);
 
@@ -19,7 +21,7 @@ public class Console {
 		System.out.println();
 		System.out.print("Choose an option: ");
 		int shopChoice = scanner.nextInt();
-		scanner.nextLine(); 
+		scanner.nextLine();
 
 		Shop currentShop = Database.Shop_DB.get(shopChoice - 1);
 
@@ -240,15 +242,15 @@ public class Console {
 		for (int i = 0; i < cartSize; i++) {
 			subtotal += cart[i].getTotal();
 		}
-
-		double shipping = 5;
+		
 		double discount = currentCustomer.getDiscount();
-		double voucher = 1.0;
+		double shipping = Shipping.getShippingFee();
+		double voucher = Voucher.applyVoucher(scanner, subtotal, shipping);
 
 		if (currentCustomer.rank.equals("Silver")) {
 			shipping = shipping / 2;
 		}
-
+		
 		double total = subtotal * (1 - discount) - voucher + shipping;
 
 		System.out.println();
@@ -259,9 +261,8 @@ public class Console {
 			System.out.println(
 					(i + 1) + ". " + item.name + " $" + item.price + " x " + item.quantity + " = $" + item.getTotal());
 		}
-
-		System.out.println("Shipping fee: $" + shipping);
 		System.out.println("Voucher: -$" + voucher);
+		System.out.println("Shipping fee: $" + shipping);
 		System.out.println("Rank: " + currentCustomer.rank + " -$" + (discount * subtotal));
 		System.out.println("Total: $" + total);
 		System.out.println();
