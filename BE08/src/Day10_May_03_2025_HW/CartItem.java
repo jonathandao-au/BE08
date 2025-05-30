@@ -1,7 +1,7 @@
 package Day10_May_03_2025_HW;
 
 public class CartItem extends Product {
-    int quantity;
+    public int quantity;
 
     public CartItem(String name, double price, int quantity) {
         super(name, price);

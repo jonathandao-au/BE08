@@ -2,14 +2,10 @@ package Day10_May_03_2025_HW;
 
 import java.util.Scanner;
 
-import OOP.Voucher;
-
 public class Console {
 	static Scanner scanner = new Scanner(System.in);
 
 	public static void main(String[] args) {
-
-		// Shop selection
 
 		System.out.println("Welcome.");
 		System.out.println();
@@ -29,11 +25,7 @@ public class Console {
 		boolean returnToLogin = true;
 
 		while (returnToLogin) {
-			System.out.println();
-			System.out.println("1. Login");
-			System.out.println("2. Register");
-			System.out.println();
-			System.out.print("Choose an option: ");
+			Print.loginHome();
 			String loginChoice = scanner.nextLine();
 
 			if (loginChoice.equals("1")) {
@@ -55,12 +47,7 @@ public class Console {
 					System.out.println("Incorrect credentials. Attempts left: " + (3 - attempts));
 				}
 				if (currentCustomer == null) {
-					System.out.println("Maximum attempts reached.");
-					System.out.println();
-					System.out.println("1. Try Login Again");
-					System.out.println("2. Exit");
-					System.out.println();
-					System.out.print("Choose an option: ");
+					Print.loginRetry();
 					String retryChoice = scanner.nextLine();
 					if (retryChoice.equals("2")) {
 						return;
@@ -75,7 +62,7 @@ public class Console {
 				}
 				System.out.print("New Password: ");
 				String newPassword = scanner.nextLine();
-				String newRank = "None"; // Default ranking to "None" for new account.
+				String newRank = "None";
 				Customer newCustomer = new Customer(newId, newPassword, newRank);
 				currentShop.addCustomer(newCustomer);
 				System.out.println("Registration successful. Please log in.");
@@ -86,23 +73,15 @@ public class Console {
 		int cartSize = 0;
 
 		while (true) {
-			System.out.println();
-			System.out.println("MAIN MENU");
-			System.out.println("1. View Cart");
-			System.out.println("2. Ranking");
-			System.out.println("3. View Products");
-			System.out.println("4. Remove Item from Cart");
-			System.out.println("0. Checkout");
-			System.out.println();
-			System.out.print("Choose an option: ");
+			Print.mainMenu();
 			String menuChoice = scanner.nextLine();
 
 			if (menuChoice.equals("1")) {
-				viewCart(cart, cartSize);
+				CartService.viewCart(cart, cartSize);
 			} else if (menuChoice.equals("2")) {
 				System.out.println();
 				System.out.println("Your Rank: " + currentCustomer.rank);
-				System.out.println("Promotion: " + currentCustomer.getPromotion());
+				System.out.println("Promotion: " + currentCustomer.showPromotion());
 			} else if (menuChoice.equals("3")) {
 				while (true) {
 					System.out.println("\nPRODUCT MENU");
@@ -172,7 +151,7 @@ public class Console {
 					continue;
 				}
 
-				viewCart(cart, cartSize);
+				CartService.viewCart(cart, cartSize);
 				System.out.print("Enter item number to remove: ");
 				String removeChoice = scanner.nextLine();
 				boolean found = false;
@@ -209,82 +188,28 @@ public class Console {
 					System.out.println("Invalid index.");
 				}
 			} else if (menuChoice.equals("0")) {
-				// Checkout process
-				if (checkout(cart, cartSize, currentCustomer)) {
-					break; // Exit loop if checkout is successful
+				if (CartService.checkout(cart, cartSize, currentCustomer)) {
+					break;
 				}
 			}
 		}
-	}
-
-	static void viewCart(CartItem[] cart, int cartSize) {
-		System.out.println();
-		System.out.println("Your Cart:");
-		if (cartSize == 0) {
-			System.out.println("Your cart is empty.");
-			return;
-		}
-		for (int i = 0; i < cartSize; i++) {
-			CartItem item = cart[i];
-			System.out.println(
-					(i + 1) + ". " + item.name + " $" + item.price + " x " + item.quantity + " = $" + item.getTotal());
-		}
-	}
-
-	static boolean checkout(CartItem[] cart, int cartSize, Customer currentCustomer) {
-		if (cartSize == 0) {
-			System.out.println();
-			System.out.println("Your cart is empty.");
-			return false;
-		}
-
-		double subtotal = 0;
-		for (int i = 0; i < cartSize; i++) {
-			subtotal += cart[i].getTotal();
-		}
-		
-		double discount = currentCustomer.getDiscount();
-		double shipping = Shipping.getShippingFee();
-		double voucher = Voucher.applyVoucher(scanner, subtotal, shipping);
-
-		if (currentCustomer.rank.equals("Silver")) {
-			shipping = shipping / 2;
-		}
-		
-		double total = subtotal * (1 - discount) - voucher + shipping;
-
-		System.out.println();
-		System.out.println("CHECKOUT");
-		System.out.println();
-		for (int i = 0; i < cartSize; i++) {
-			CartItem item = cart[i];
-			System.out.println(
-					(i + 1) + ". " + item.name + " $" + item.price + " x " + item.quantity + " = $" + item.getTotal());
-		}
-		System.out.println("Voucher: -$" + voucher);
-		System.out.println("Shipping fee: $" + shipping);
-		System.out.println("Rank: " + currentCustomer.rank + " -$" + (discount * subtotal));
-		System.out.println("Total: $" + total);
-		System.out.println();
-		System.out.println("1. Confirm and Pay");
-		System.out.println("2. Cancel and return to MAIN MENU");
-		System.out.println();
-		System.out.print("Choose an option: ");
-		String choice = scanner.nextLine();
-		if (choice.equals("1")) {
-			System.out.println("Payment successful. Thank you!");
-			cartSize = 0;
-			return true;
-		} else {
-			System.out.println("Checkout cancelled.");
-			return false;
-		}
+		CartService.viewCart(cart, cartSize);
+		CartService.checkout(cart, cartSize, currentCustomer);
 	}
 }
 
-// Prioritise data segregation, using multiple classes (and subclasses if possible).
+// Prioritise data segregation, using multiple classes (and subclasses if possible). [ENCAPSULATION]
 // Eg. Console
 // Console
 // Shop => (Product => ShoppingCart + CartItem) + (Customer)
 // There should be an private static void initData function to add demo data.
 // Final, static, etc.
+// Non-static txt read. Timeline-based.
+// Re-read databases every time after critical operations.
+// Environment class for static variables.
+// Try utilising Encapsulation and Polymorphism
+// Minimise impacts towards other classes.
+// Prioritise changing services (operations) not main/console.
+// INHERITANCE & POLYMORPHISM & DESIGN PATTERN FACTORY (refactoring.guru)
+// ABSTRACTION - use it as a mold/template for similar functions/objects (concrete class). - Think about the similarity between.
+// Abstraction vs Interface. extends (functions and attributes) vs implements (only functions). 

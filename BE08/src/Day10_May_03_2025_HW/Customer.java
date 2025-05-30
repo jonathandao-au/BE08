@@ -11,7 +11,7 @@ public class Customer {
 		rank = customerRank;
 	}
 
-	public String getPromotion() {
+	public String showPromotion() {
 		if (rank.equals("Silver"))
 			return "50% off shipping fee";
 		if (rank.equals("Gold"))
@@ -21,7 +21,7 @@ public class Customer {
 		return "No promotions";
 	}
 
-	public double getDiscount() {
+	public double getPromotion() {
 		switch (rank) {
 		case "Silver":
 			return 0.02;

@@ -1,4 +1,4 @@
-package OOP;
+package Day10_May_03_2025_HW;
 
 import java.util.Scanner;
 

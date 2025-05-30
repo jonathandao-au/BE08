@@ -1,0 +1,8 @@
+shopA,usera1,1234,None
+shopA,usera2,1234,Bronze
+shopA,usera3,1234,Gold
+shopA,usera4,1234,Diamond
+shopB,userb1,1234,Tier0
+shopB,userb2,1234,Tier1
+shopB,userb3,1234,Tier2
+shopB,userb4,1234,Tier3
