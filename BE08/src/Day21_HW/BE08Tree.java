@@ -13,13 +13,11 @@ public class BE08Tree {
         public BE08Node nodeSearchBFS(int value) {
         if (root == null) return null;
 
-        ArrayList<BE08Node> listChildren = new ArrayList<>();
+        LinkedList<BE08Node> listChildren = new LinkedList<>();
         listChildren.add(root);
-        int index = 0;
 
-        while (index < listChildren.size()) {
-            BE08Node currentNode = listChildren.get(index);
-            index++;
+        while (!listChildren.isEmpty()) {
+            BE08Node currentNode = listChildren.removeFirst();
 
             if (currentNode.value == value) {
                 return currentNode;
