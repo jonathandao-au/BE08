@@ -10,26 +10,21 @@ public class BE08Tree {
     }
 
     // Breadth-First Search (BFS)
-    public BE08Node nodeSearchBFS(int value) {
-        if (root == null) return null;
+    if (root == null) return null;
 
-        ArrayList<BE08Node> listChildren = new ArrayList<>();
-        listChildren.add(root);
-        int index = 0;
+    LinkedList<BE08Node> queue = new LinkedList<>();
+    queue.add(root);
 
-        while (index < listChildren.size()) {
-            BE08Node currentNode = listChildren.get(index);
-            index++;
+    while (!queue.isEmpty()) {
+        BE08Node current = queue.removeFirst();
 
-            if (currentNode.value == value) {
-                return currentNode;
-            }
+        if (current.value == value) return current;
 
-            listChildren.addAll(currentNode.children);
-        }
-
-        return null;
+        queue.addAll(current.children);
     }
+
+    return null;
+}
 
     // Depth-First Search (DFS)
     public BE08Node nodeSearchDFS(int value) {
