@@ -11,11 +11,11 @@ public class Main {
 		tree.root = root;
 		BE08Node node = new BE08Node(null);
 		node.value = 30;
-		
 		tree.root.children.add(node);
 		
 		node = new BE08Node(null);
 		node.value = 40;
+		tree.root.children.add(node);
 
 		node = new BE08Node(null);
 		node.value = 20;
