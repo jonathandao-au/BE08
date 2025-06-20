@@ -28,13 +28,23 @@ public class Main {
 		findNode.children.add(node);
 
 		node = new BE08Node(1);
-		node.value = 60;
+		node.value = 50;
 		findNode = tree.nodeSearchDFS(10);
+		findNode.children.add(node);
+		
+		node = new BE08Node(1);
+		node.value = 60;
+		findNode = tree.nodeSearchDFS(50);
+		findNode.children.add(node);
+
+		node = new BE08Node(1);
+		node.value = 70;
+		findNode = tree.nodeSearchDFS(50);
 		findNode.children.add(node);
 
 		System.out.println("1. BFS Search");
 		System.out.println("2. DFS Search");
-		System.out.println("3. DFS Search with Recursive");
+		System.out.println("3. DFS Search with Recursion");
 
 		Scanner scanner = new Scanner(System.in);
 
