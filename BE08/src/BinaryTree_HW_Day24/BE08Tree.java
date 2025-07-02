@@ -39,26 +39,23 @@ public class BE08Tree {
     private BE08Node rebalanceNode(BE08Node node) {
         if (node == null) return null;
 
-        // Recurse on children first (post-order)
         node.left = rebalanceNode(node.left);
         node.right = rebalanceNode(node.right);
 
         int balance = height(node.left) - height(node.right);
 
         if (balance > 1) {
-            // Left-heavy: decide between LL and LR
             if (height(node.left.left) >= height(node.left.right)) {
-                node = rotateRight(node); // LL case
+                node = rotateRight(node);
             } else {
-                node.left = rotateLeft(node.left); // LR case
+                node.left = rotateLeft(node.left);
                 node = rotateRight(node);
             }
         } else if (balance < -1) {
-            // Right-heavy: decide between RR and RL
             if (height(node.right.right) >= height(node.right.left)) {
-                node = rotateLeft(node); // RR case
+                node = rotateLeft(node);
             } else {
-                node.right = rotateRight(node.right); // RL case
+                node.right = rotateRight(node.right);
                 node = rotateLeft(node);
             }
         }
@@ -66,7 +63,6 @@ public class BE08Tree {
         return node;
     }
 
-    /** Calculates the height of a node recursively */
     private int height(BE08Node node) {
         if (node == null) return 0;
         return Math.max(height(node.left), height(node.right)) + 1;
