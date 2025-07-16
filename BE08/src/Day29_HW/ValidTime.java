@@ -10,8 +10,10 @@ public class ValidTime {
 		String earliest = null;
 
 		do {
-			boolean valid = (digits[0] <= 2) && (digits[0] != 2 || digits[1] <= 3) && (digits[2] <= 5)
-					&& (digits[4] <= 5);
+			boolean valid = (digits[0] <= 2) && 
+							(digits[0] != 2 || digits[1] <= 3) && 
+							(digits[2] <= 5) && 
+							(digits[4] <= 5);
 
 			if (valid) {
 				String time = "" + digits[0] + digits[1] + ":" + digits[2] + digits[3] + ":" + digits[4] + digits[5];
