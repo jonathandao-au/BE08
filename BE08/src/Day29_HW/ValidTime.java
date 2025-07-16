@@ -10,16 +10,22 @@ public class ValidTime {
 		String earliest = null;
 
 		do {
-			int h = digits[0] * 10 + digits[1];
-			int m = digits[2] * 10 + digits[3];
-			int s = digits[4] * 10 + digits[5];
+		    boolean valid = 
+		        (digits[0] <= 2) &&
+		        (digits[0] != 2 || digits[1] <= 3) &&
+		        (digits[2] <= 5) &&
+		        (digits[4] <= 5);
 
-			if (h < 24 && m < 60 && s < 60) {
-				String time = String.format("%02d:%02d:%02d", h, m, s);
-				if (earliest == null || time.compareTo(earliest) < 0) {
-					earliest = time;
-				}
-			}
+		    if (valid) {
+		        String time = "" 
+		            + digits[0] + digits[1] + ":" 
+		            + digits[2] + digits[3] + ":" 
+		            + digits[4] + digits[5];
+
+		        if (earliest == null || time.compareTo(earliest) < 0) {
+		            earliest = time;
+		        }
+		    }
 		} while (nextPermutation(digits));
 
 		return earliest != null ? earliest : "INVALID";
