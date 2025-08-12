@@ -1,5 +1,5 @@
 SHOW DATABASES;
-
+CREATE DATABASE galaxy_cinema;
 USE galaxy_cinema;
 
 CREATE TABLE film (
