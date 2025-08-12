@@ -1,5 +1,5 @@
 SHOW DATABASES;
-CREATE DATABASE galaxy_cinema;
+
 USE galaxy_cinema;
 
 CREATE TABLE film (
@@ -45,7 +45,7 @@ VALUES
     (1, 3, '2025-10-13 18:00:00')
 ;
 
-SELECT * FROM screening; 
+SELECT * FROM screening;
 
 CREATE TABLE seat (
 	id INT AUTO_INCREMENT PRIMARY KEY,
@@ -117,7 +117,8 @@ VALUES
     (2, 2),
     (3, 4),
     (3, 3),
-    (4, 4);
+    (4, 4)
+;
 
 USE galaxy_cinema;
 
