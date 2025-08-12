@@ -122,4 +122,4 @@ VALUES
 USE galaxy_cinema;
 
 CREATE INDEX index_film_name ON film (name);
-SELECT * FROM film WHERE name = 'Movie A';
+SELECT * FROM film WHERE name = 'Movie C';
