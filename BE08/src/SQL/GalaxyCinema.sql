@@ -117,5 +117,9 @@ VALUES
     (2, 2),
     (3, 4),
     (3, 3),
-    (4, 4)
-;
+    (4, 4);
+
+USE galaxy_cinema;
+
+CREATE INDEX index_film_name ON film (name);
+SELECT * FROM film WHERE name = 'Movie A';
