@@ -36,15 +36,21 @@ WHERE country_code = 'US';
 SELECT MIN(length_min) AS shortest, MAX(length_min) AS longest
 FROM film;
 
+-- UNION??? Merged columns share the same data type 
+
 -- 7. Unique film types (NO DUPLICATE)
 -- DISTINCT removes duplicates from the type column.
 SELECT DISTINCT type
 FROM film;
 
 -- 8. Distance (in days) between 1st and last film screening
--- DATEDIFF calculates days between MIN and MAX start_time.
-SELECT DATEDIFF(MAX(start_time), MIN(start_time)) AS days_between
-FROM screening;
+-- HAVING COUNT(*) > 2
+-- SELECT - FROM - WHERE - GROUP BY - HAVING
+-- NEETCODE practicals
+-- QUERY OF EXECUTION
+SELECT department_id, COUNT(*) 
+FROM screening
+GROUP BY;
 
 -- 9. All Screening Information for film "Tom&Jerry"
 -- JOIN to match film and room for full info.
