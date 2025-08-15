@@ -25,6 +25,7 @@ WHERE name LIKE '%a%';
 -- 5. How many film in US?
 -- COUNT(*) counts rows. WHERE filters by country_code.
 -- COUNT(*) counts null rows as well whereas others don't.
+-- COUNT(*) is O(1) while COUNT(attribute) is O(n). (*) is just array.length while (attribute) is a null-checking loop.
 SELECT COUNT(*) AS total_us_films
 FROM film
 WHERE country_code = 'US';
