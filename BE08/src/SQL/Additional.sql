@@ -14,7 +14,7 @@ WHERE length_min > (SELECT AVG(length_min) FROM film);
 -- LIKE 't%' matches names starting with 't' (case-insensitive by default if collation allows).
 SELECT *
 FROM film
-WHERE name LIKE 'T%';
+WHERE name LIKE 't%';
 
 -- 4. Which film contain letter 'a'
 -- LIKE '%a%' finds 'a' anywhere in the name.
