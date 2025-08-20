@@ -1,3 +1,5 @@
+-- UTILIZE EXPLAIN AND ANALYZE TO LEARN HOW MYSQL WORKS - VERY IMPORTANT.
+
 -- 1. Show film over 100mins
 -- Simple filter using WHERE. Uses index scan if length_min is indexed.
 SELECT *
@@ -52,13 +54,12 @@ GROUP BY type;
 -- SELECT - FROM - WHERE - GROUP BY - HAVING
 -- NEETCODE practicals
 -- QUERY OF EXECUTION
+-- MANY-TO-ONE will have indexed primary keys on ONE => O(1) complexity for select/call.
+-- Prioritize indexing primary keys with a smaller loop of a table (containing less data).
+-- Frequently changing data should be represented by seconds.
+-- 
 
--- SELECT department_id, COUNT(*) 
--- FROM screening
--- GROUP BY;
-
-SELECT DATEDIFF(MAX(start_time), MIN(start_time)) AS days_between
-FROM screening;
+SELECT film.id, film.name, IFNULL(MAX(DATE(start_time)) - MIN(DATE(start_time)),0) FROM film LEFT JOIN screening ON film.id = screening.film_id GROUP BY film.id, film.name;
 
 -- 9. All Screening Information for film "Tom&Jerry"
 -- JOIN to match film and room for full info.
