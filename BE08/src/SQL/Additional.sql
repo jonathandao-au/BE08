@@ -42,15 +42,23 @@ FROM film;
 -- DISTINCT removes duplicates from the type column.
 SELECT DISTINCT type
 FROM film;
+-- OR 
+SELECT type
+FROM film
+GROUP BY type;
 
 -- 8. Distance (in days) between 1st and last film screening
 -- HAVING COUNT(*) > 2
 -- SELECT - FROM - WHERE - GROUP BY - HAVING
 -- NEETCODE practicals
 -- QUERY OF EXECUTION
-SELECT department_id, COUNT(*) 
-FROM screening
-GROUP BY;
+
+-- SELECT department_id, COUNT(*) 
+-- FROM screening
+-- GROUP BY;
+
+SELECT DATEDIFF(MAX(start_time), MIN(start_time)) AS days_between
+FROM screening;
 
 -- 9. All Screening Information for film "Tom&Jerry"
 -- JOIN to match film and room for full info.
