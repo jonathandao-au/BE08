@@ -146,6 +146,29 @@ HAVING COUNT(DISTINCT s.film_id) = (
     ) AS t
 );
 
+SELECT room_id, total_films
+FROM (SELECT room_id, COUNT(DISTINCT film_id) AS total_films
+	FROM screening
+	GROUP BY room_id) AS t
+WHERE total_films = (SELECT COUNT(DISTINCT film_id) AS total_film
+					 FROM screening
+                     GROUP BY room_id
+                     ORDER BY total_films
+                     LIMIT 1);
+
+-- OR
+
+-- Common Table Expression
+
+WITH cte_room_total_film AS (
+	SELECT room_id, COUNT(DISTINCT film_id) AS total_films
+	FROM screening
+	GROUP BY room_id
+)
+SELECT room_id, total_films
+FROM cte_room_total_film
+WHERE total_films = (SELECT MIN(total_films) FROM cte_room_total_film);
+
 -- 15. Films without booking
 -- LEFT JOIN through screening to booking.
 SELECT DISTINCT f.*
