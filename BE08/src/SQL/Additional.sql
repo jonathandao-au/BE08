@@ -63,11 +63,30 @@ SELECT film.id, film.name, IFNULL(MAX(DATE(start_time)) - MIN(DATE(start_time)),
 
 -- 9. All Screening Information for film "Tom&Jerry"
 -- JOIN to match film and room for full info.
+-- SUBQUERY without INDEX?
+-- WHERE applies before JOINING
+
 SELECT s.*, f.name AS film_name, r.name AS room_name
 FROM screening s
 JOIN film f ON s.film_id = f.id
 JOIN room r ON s.room_id = r.id
 WHERE f.name = 'Tom&Jerry';
+
+-- OR EXPLICIT (Better logic)
+
+SELECT f.name as film_name, r.name as room_name, s.start_time
+FROM film f 
+JOIN screening s ON f.id = s.film_id
+JOIN room r ON r.id = s.room_id 
+WHERE f.name = 'Tom&Jerry';
+
+-- OR IMPLICIT (Not recommended, LEFT/RIGHT JOIN don't work properly)
+
+SELECT f.name as film_name, r.name as room_name, s.start_time
+FROM film f 
+JOIN screening s
+JOIN room r
+WHERE f.name = 'Tom&Jerry'AND f.id = s.film_id AND r.id = s.room_id;
 
 -- 10. All screening in two given days
 -- Use IN() for multiple dates.
@@ -84,7 +103,10 @@ WHERE s.id IS NULL;
 
 -- 12. Who booked more than 1 seat in the same booking
 -- GROUP BY booking_id and filter HAVING > 1 seat_id.
-SELECT b.id AS booking_id, c.first_name, c.last_name, COUNT(rs.seat_id) AS seats_booked
+-- You don't have to SELECT and GROUP BY the same columns all the time.
+-- Usually you should use GROUP BY with IDs, as they represent rows and references from other tables.
+-- Consider adding a subquery SELECT DISTINCT/ GROUP BY + SUM to account for multiple bookings from one person.
+SELECT b.id AS booking_id, c.first_name, c.last_name, COUNT(rs.seat_id) AS seats_quantity
 FROM booking b
 JOIN customer c ON b.customer_id = c.id
 JOIN reserved_seat rs ON b.id = rs.booking_id
@@ -107,6 +129,22 @@ JOIN room r ON s.room_id = r.id
 GROUP BY r.id
 ORDER BY total_films ASC
 LIMIT 1;
+
+-- This doesn't account for multiple rooms having the same least amount.
+
+-- OR
+
+SELECT r.name, COUNT(DISTINCT s.film_id) AS total_films
+FROM screening s
+JOIN room r ON s.room_id = r.id
+GROUP BY r.id
+HAVING COUNT(DISTINCT s.film_id) = (
+    SELECT MIN(films_per_room) FROM (
+        SELECT COUNT(DISTINCT film_id) AS films_per_room
+        FROM screening
+        GROUP BY room_id
+    ) AS t
+);
 
 -- 15. Films without booking
 -- LEFT JOIN through screening to booking.
