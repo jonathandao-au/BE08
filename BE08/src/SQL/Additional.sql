@@ -270,19 +270,27 @@ LEFT JOIN booking b
 
 -- 22. Seats Mr. Dung CAN book besides his reserved seats in booking id = 1
 -- Get all seats in the same room, exclude ones booked by Dung.
-SELECT s.*
-FROM seat s
-WHERE s.room_id = (
-    SELECT sc.room_id
-    FROM screening sc
-    JOIN booking b ON sc.id = b.screening_id
-    WHERE b.id = 1
+SELECT 
+    se.id AS seat_id,
+    se.row AS seat_row,
+    se.number AS seat_number,
+    r.name AS room_name
+FROM seat se
+JOIN room r ON se.room_id = r.id
+JOIN screening s ON s.room_id = r.id
+LEFT JOIN reserved_seat rs 
+       ON se.id = rs.seat_id
+LEFT JOIN booking b 
+       ON rs.booking_id = b.id 
+       AND b.screening_id = s.id
+       AND b.customer_id
+       WHERE s.id = (
+    SELECT screening_id 
+    FROM booking 
+    WHERE id = 1
 )
-AND s.id NOT IN (
-    SELECT rs.seat_id
-    FROM reserved_seat rs
-    WHERE rs.booking_id = 1
-);
+  AND rs.seat_id IS NULL
+  ORDER BY se.id;
 
 -- 23. Film with total screenings > 10, ordered by total screenings
 SELECT f.name, COUNT(s.id) AS total_screenings
