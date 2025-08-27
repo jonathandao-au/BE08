@@ -1,5 +1,6 @@
 -- UTILIZE EXPLAIN AND ANALYZE TO LEARN HOW MYSQL WORKS - VERY IMPORTANT.
--- INDEXING IS POWERFUL - USE IT.
+-- EXPLAIN ASSIST IN ORDER AND STRATEGY OF EXECUTION OF QUERIES.
+-- INDEXING IS POWERFUL - USE IT. AUTOKEYS.
 -- EG. ADDING INDEX WHERE SQL SCANS THE FULL TABLE.
 
 -- 1. Show film over 100mins
@@ -246,18 +247,26 @@ ORDER BY seat_count ASC
 LIMIT 1;
 
 -- 21. Rooms with seats above average seat count
-WITH seat_counts AS (
-    SELECT r.id, r.name, COUNT(se.id) AS seat_count
-    FROM room r
-    JOIN seat se ON r.id = se.room_id
-    GROUP BY r.id
-),
-avg_seats AS (
-    SELECT AVG(seat_count) AS avg_count FROM seat_counts
+SELECT 
+    se.id AS seat_id,
+    r.id AS room_id,
+    r.name AS room_name
+FROM seat se
+JOIN room r ON se.room_id = r.id
+JOIN screening s ON s.room_id = r.id
+LEFT JOIN reserved_seat rs 
+       ON se.id = rs.seat_id
+LEFT JOIN booking b 
+       ON rs.booking_id = b.id 
+       AND b.screening_id = s.id
+       AND b.customer_id
+       WHERE s.id = (
+    SELECT screening_id 
+    FROM booking 
+    WHERE id = 1
 )
-SELECT sc.*
-FROM seat_counts sc, avg_seats a
-WHERE sc.seat_count > a.avg_count;
+  AND rs.seat_id IS NULL
+  ORDER BY se.id;
 
 -- 22. Seats Mr. Dung CAN book besides his reserved seats in booking id = 1
 -- Get all seats in the same room, exclude ones booked by Dung.
