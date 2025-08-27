@@ -197,13 +197,13 @@ ORDER BY films_count DESC;
 -- Join film to screening, filter by date, sum lengths.
 SELECT 
     f.id AS film_id,
-    f.title,
-    COALESCE(SUM(f.length), 0) AS total_length
+    f.name AS film_name,
+    COALESCE(SUM(f.length_min), 0) AS total_length
 FROM film f
 LEFT JOIN screening s 
     ON f.id = s.film_id
-   AND DATE(s.screening_time) = '2022-05-28'
-GROUP BY f.id, f.title;
+   AND DATE(s.start_time) = '2022-05-28'
+GROUP BY f.id, f.name;
 
 -- 19. Films with showing time above and below average
 -- Compare SUM(length) per film with overall avg SUM(length) per film.
