@@ -1,4 +1,6 @@
 -- UTILIZE EXPLAIN AND ANALYZE TO LEARN HOW MYSQL WORKS - VERY IMPORTANT.
+-- INDEXING IS POWERFUL - USE IT.
+-- EG. ADDING INDEX WHERE SQL SCANS THE FULL TABLE.
 
 -- 1. Show film over 100mins
 -- Simple filter using WHERE. Uses index scan if length_min is indexed.
@@ -209,6 +211,12 @@ SELECT
     f.length_min * IFNULL(fs.screening_count, 0) AS total_length
 FROM film f
 LEFT JOIN film_screenings fs ON f.id = fs.film_id;
+
+-- OR
+
+SELECT f.id, f.name, SUM(IF(s.id is null, 0, length_min)) as total_length
+FROM film f LEFT JOIN screening s ON f.id = s.film_id AND DATE(s.start_time) = '2022-05-28'
+GROUP BY f.id;
 
 -- 19. Films with showing time above and below average
 -- Compare SUM(length) per film with overall avg SUM(length) per film.
