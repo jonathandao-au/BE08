@@ -351,11 +351,46 @@ SELECT fr.*,
 FROM film_rates fr, avg_rate ar;
 
 -- 27. TOP 2 people who enjoy the least total TIME in cinema (only with bookings)
-SELECT c.first_name, c.last_name, SUM(f.length_min) AS total_minutes
-FROM booking b
-JOIN customer c ON b.customer_id = c.id
+SELECT c.id AS customer_id,
+       CONCAT(c.first_name, ' ', c.last_name) AS customer_name,
+       SUM(f.length) AS total_minutes
+FROM customer c
+JOIN booking b ON c.id = b.customer_id
 JOIN screening s ON b.screening_id = s.id
 JOIN film f ON s.film_id = f.id
-GROUP BY c.id
-ORDER BY total_minutes ASC
-LIMIT 2;
+GROUP BY c.id, c.first_name, c.last_name
+HAVING SUM(f.length) = (
+    -- smallest total
+    SELECT MIN(total_minutes)
+    FROM (
+      SELECT SUM(f.length) AS total_minutes
+      FROM customer c
+      JOIN booking b ON c.id = b.customer_id
+      JOIN screening s ON b.screening_id = s.id
+      JOIN film f ON s.film_id = f.id
+      GROUP BY c.id
+    ) AS t
+)
+OR SUM(f.length) = (
+    -- second smallest total
+    SELECT MIN(total_minutes)
+    FROM (
+      SELECT SUM(f.length) AS total_minutes
+      FROM customer c
+      JOIN booking b ON c.id = b.customer_id
+      JOIN screening s ON b.screening_id = s.id
+      JOIN film f ON s.film_id = f.id
+      GROUP BY c.id
+      HAVING SUM(f.length) >
+        (SELECT MIN(total_minutes)
+         FROM (
+           SELECT SUM(f.length) AS total_minutes
+           FROM customer c
+           JOIN booking b ON c.id = b.customer_id
+           JOIN screening s ON b.screening_id = s.id
+           JOIN film f ON s.film_id = f.id
+           GROUP BY c.id
+         ) AS t1)
+    ) AS t2
+)
+ORDER BY total_minutes ASC;
