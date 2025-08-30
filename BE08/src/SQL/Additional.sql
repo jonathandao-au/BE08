@@ -2,6 +2,7 @@
 -- EXPLAIN ASSIST IN ORDER AND STRATEGY OF EXECUTION OF QUERIES.
 -- INDEXING IS POWERFUL - USE IT. AUTOKEYS.
 -- EG. ADDING INDEX WHERE SQL SCANS THE FULL TABLE.
+-- GROUP BY A FK allows SELECT other columns of FK rows.
 
 -- 1. Show film over 100mins
 -- Simple filter using WHERE. Uses index scan if length_min is indexed.
@@ -360,7 +361,6 @@ JOIN screening s ON b.screening_id = s.id
 JOIN film f ON s.film_id = f.id
 GROUP BY c.id, c.first_name, c.last_name
 HAVING SUM(f.length) = (
-    -- smallest total
     SELECT MIN(total_minutes)
     FROM (
       SELECT SUM(f.length) AS total_minutes
@@ -372,7 +372,6 @@ HAVING SUM(f.length) = (
     ) AS t
 )
 OR SUM(f.length) = (
-    -- second smallest total
     SELECT MIN(total_minutes)
     FROM (
       SELECT SUM(f.length) AS total_minutes
@@ -394,3 +393,26 @@ OR SUM(f.length) = (
     ) AS t2
 )
 ORDER BY total_minutes ASC;
+
+-- OR DENSE_RANK
+
+WITH cte_customer_with_length AS(
+SELECT c.id, c.first_name, c.last_name, length_min 
+FROM customer c JOIN booking b ON c.id = b.customer_id
+				JOIN screening s ON s.id = b.screening_id
+                JOIN film f ON f.id = s.film_id
+GROUP BY c.id, s.id),
+
+cte_customer_with_total_length AS(
+SELECT id, first_name, last_name, SUM(length_min) as total_length
+FROM cte_customer_with_length
+GROUP BY id),
+
+cte_ranking AS(
+SELECT *, DENSE_RANK() OVER (ORDER BY total_length) ranking
+FROM cte_customer_with_total_length)
+
+SELECT *
+FROM cte_ranking
+WHERE ranking >= 2 AND ranking <= 4
+ORDER BY total_length ASC, last_name, first_name;
