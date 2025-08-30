@@ -3,6 +3,8 @@
 -- INDEXING IS POWERFUL - USE IT. AUTOKEYS.
 -- EG. ADDING INDEX WHERE SQL SCANS THE FULL TABLE.
 -- GROUP BY A FK allows SELECT other columns of FK rows.
+-- TRIGGERS WITH LOG TABLE.
+-- STRUCTURE TRIGGER NETWORK COHESIVELY FOR EASE OF DEBUGGING/MAINTAINING/UPDATING.
 
 -- 1. Show film over 100mins
 -- Simple filter using WHERE. Uses index scan if length_min is indexed.
