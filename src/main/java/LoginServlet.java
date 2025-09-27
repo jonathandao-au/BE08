@@ -31,7 +31,7 @@ public class LoginServlet extends HttpServlet {
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
              PreparedStatement ps = conn.prepareStatement(
-                 "SELECT * FROM users WHERE username = ? AND password = ?")) {
+                 "SELECT * FROM students WHERE username = ? AND password = ?")) {
             
             ps.setString(1, username);
             ps.setString(2, password);
