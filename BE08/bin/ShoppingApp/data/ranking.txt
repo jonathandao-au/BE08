@@ -1,0 +1,8 @@
+shopA,Tier0,0
+shopA,Tier1,10
+shopA,Tier2,20
+shopA,Tier3,30
+shopB,None,0
+shopB,Silver,5
+shopB,Gold,10
+shopB,Diamond,15

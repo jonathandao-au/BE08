@@ -1,0 +1,10 @@
+ShopA,Soda,3.5
+ShopA,Coffee,5
+ShopA,Milktea,6
+ShopA,Smoothie,6.5
+ShopA,Matcha,7
+ShopB,Hotdog,5
+ShopB,Fish and Chips,8.5
+ShopB,Pizza,15
+ShopB,Pasta,15
+ShopB,Steak,30

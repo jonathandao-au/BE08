@@ -1,0 +1,427 @@
+-- UTILIZE EXPLAIN AND ANALYZE TO LEARN HOW MYSQL WORKS - VERY IMPORTANT.
+-- EXPLAIN ASSIST IN ORDER AND STRATEGY OF EXECUTION OF QUERIES.
+-- INDEXING AND PARTITION ARE POWERFUL TOOLS - USE THEM. AUTOKEYS.
+-- EG. ADDING INDEX WHERE SQL SCANS THE FULL TABLE.
+-- GROUP BY A FK allows SELECT other columns of FK rows.
+-- TRIGGERS WITH LOG TABLE.
+-- STRUCTURE TRIGGER NETWORK COHESIVELY FOR EASE OF DEBUGGING/MAINTAINING/UPDATING.
+-- VIEWS, STORED PROCEDURES, AND FUNCTIONS.
+-- MATERIALIZED VIEWS AND TABLES.
+-- DESCRIPTION-TYPE (STRING/VARCHAR) COLUMNS ARE NOT JOINABLE, BUT STILL APPLICABLE FOR 1NF BEING A SINGLE ATOMIC DATA.
+-- FULL-TEXT SEARCH SHOULD BE USED FOR SEARCHING THESE COLUMNS NOT INDEXING.
+-- IF A TABLE DOESN'T HAVE COMPOSITE KEYS THEN IT AUTOMATICALLY PASS 2NF.
+-- SUPPER KEYS VS CA KEYS.
+
+
+-- 1. Show film over 100mins
+-- Simple filter using WHERE. Uses index scan if length_min is indexed.
+SELECT *
+FROM film
+WHERE length_min > 100;
+
+-- 2. Which film over average length of all films
+-- Subquery calculates average once; outer query filters above that.
+SELECT *
+FROM film
+WHERE length_min > (SELECT AVG(length_min) FROM film);
+
+-- 3. Which film has name start with letter 't'
+-- LIKE 't%' matches names starting with 't' (case-insensitive by default if collation allows).
+SELECT *
+FROM film
+WHERE name LIKE 't%';
+
+-- 4. Which film contain letter 'a'
+-- LIKE '%a%' finds 'a' anywhere in the name.
+SELECT *
+FROM film
+WHERE name LIKE '%a%';
+
+-- 5. How many film in US?
+-- COUNT(*) counts rows. WHERE filters by country_code.
+-- COUNT(*) counts null rows as well whereas others don't.
+-- COUNT(*) is O(1) while COUNT(attribute) is O(n). (*) is just array.length while (attribute) is a null-checking loop.
+-- Use COUNT(*) when data within is not a concern.
+SELECT COUNT(*) AS total_us_films
+FROM film
+WHERE country_code = 'US';
+
+-- 6. Longest and shortest length of all film
+-- MIN and MAX are aggregate functions, scanning only once.
+SELECT MIN(length_min) AS shortest, MAX(length_min) AS longest
+FROM film;
+
+-- UNION??? Merged columns share the same data type 
+
+-- 7. Unique film types (NO DUPLICATE)
+-- DISTINCT removes duplicates from the type column.
+SELECT DISTINCT type
+FROM film;
+-- OR 
+SELECT type
+FROM film
+GROUP BY type;
+
+-- 8. Distance (in days) between 1st and last film screening
+-- HAVING COUNT(*) > 2
+-- SELECT - FROM - WHERE - GROUP BY - HAVING
+-- NEETCODE practicals
+-- QUERY OF EXECUTION
+-- MANY-TO-ONE will have indexed primary keys on ONE => O(1) complexity for select/call.
+-- Prioritize indexing primary keys with a smaller loop of a table (containing less data).
+-- Frequently changing data should be represented by seconds.
+-- 
+
+SELECT film.id, film.name, IFNULL(MAX(DATE(start_time)) - MIN(DATE(start_time)),0) FROM film LEFT JOIN screening ON film.id = screening.film_id GROUP BY film.id, film.name;
+
+-- 9. All Screening Information for film "Tom&Jerry"
+-- JOIN to match film and room for full info.
+-- SUBQUERY without INDEX?
+-- WHERE applies before JOINING
+
+SELECT s.*, f.name AS film_name, r.name AS room_name
+FROM screening s
+JOIN film f ON s.film_id = f.id
+JOIN room r ON s.room_id = r.id
+WHERE f.name = 'Tom&Jerry';
+
+-- OR EXPLICIT (Better logic)
+
+SELECT f.name as film_name, r.name as room_name, s.start_time
+FROM film f 
+JOIN screening s ON f.id = s.film_id
+JOIN room r ON r.id = s.room_id 
+WHERE f.name = 'Tom&Jerry';
+
+-- OR IMPLICIT (Not recommended, LEFT/RIGHT JOIN don't work properly)
+
+SELECT f.name as film_name, r.name as room_name, s.start_time
+FROM film f 
+JOIN screening s
+JOIN room r
+WHERE f.name = 'Tom&Jerry'AND f.id = s.film_id AND r.id = s.room_id;
+
+-- 10. All screening in two given days
+-- Use IN() for multiple dates.
+SELECT *
+FROM screening
+WHERE DATE(start_time) IN ('2022-05-25', '2022-05-26');
+
+-- 11. Films without any screening
+-- LEFT JOIN keeps all films; NULL in screening means no match.
+SELECT f.*
+FROM film f
+LEFT JOIN screening s ON f.id = s.film_id
+WHERE s.id IS NULL;
+
+-- 12. Who booked more than 1 seat in the same booking
+-- GROUP BY booking_id and filter HAVING > 1 seat_id.
+-- You don't have to SELECT and GROUP BY the same columns all the time.
+-- Usually you should use GROUP BY with IDs, as they represent rows and references from other tables.
+-- Consider adding a subquery SELECT DISTINCT/ GROUP BY + SUM to account for multiple bookings from one person.
+SELECT b.id AS booking_id, c.first_name, c.last_name, COUNT(rs.seat_id) AS seats_quantity
+FROM booking b
+JOIN customer c ON b.customer_id = c.id
+JOIN reserved_seat rs ON b.id = rs.booking_id
+GROUP BY b.id
+HAVING COUNT(rs.seat_id) > 1;
+
+-- 13. Rooms showing more than 2 films in one day
+-- GROUP BY room and date, count distinct films.
+SELECT r.name AS room_name, DATE(s.start_time) AS show_date, COUNT(DISTINCT s.film_id) AS films_count
+FROM screening s
+JOIN room r ON s.room_id = r.id
+GROUP BY r.id, DATE(s.start_time)
+HAVING COUNT(DISTINCT s.film_id) > 2;
+
+-- 14. Which room shows the least number of films
+-- Count distinct films per room; ORDER BY ascending, LIMIT 1 for least.
+SELECT r.name, COUNT(DISTINCT s.film_id) AS total_films
+FROM screening s
+JOIN room r ON s.room_id = r.id
+GROUP BY r.id
+ORDER BY total_films ASC
+LIMIT 1;
+
+-- This doesn't account for multiple rooms having the same least amount.
+
+-- OR
+
+SELECT r.name, COUNT(DISTINCT s.film_id) AS total_films
+FROM screening s
+JOIN room r ON s.room_id = r.id
+GROUP BY r.id
+HAVING COUNT(DISTINCT s.film_id) = (
+    SELECT MIN(films_per_room) FROM (
+        SELECT COUNT(DISTINCT film_id) AS films_per_room
+        FROM screening
+        GROUP BY room_id
+    ) AS t
+);
+
+SELECT room_id, total_films
+FROM (SELECT room_id, COUNT(DISTINCT film_id) AS total_films
+	FROM screening
+	GROUP BY room_id) AS t
+WHERE total_films = (SELECT COUNT(DISTINCT film_id) AS total_film
+					 FROM screening
+                     GROUP BY room_id
+                     ORDER BY total_films
+                     LIMIT 1);
+
+-- OR
+
+-- Common Table Expression
+
+WITH cte_room_total_film AS (
+	SELECT room_id, COUNT(DISTINCT film_id) AS total_films
+	FROM screening
+	GROUP BY room_id
+)
+SELECT room_id, total_films
+FROM cte_room_total_film
+WHERE total_films = (SELECT MIN(total_films) FROM cte_room_total_film);
+
+-- 15. Films without booking
+-- LEFT JOIN through screening to booking.
+SELECT DISTINCT f.*
+FROM film f
+LEFT JOIN screening s ON f.id = s.film_id
+LEFT JOIN booking b ON s.id = b.screening_id
+WHERE b.id IS NULL;
+
+-- 16. Film shown in the biggest number of rooms
+-- Count distinct room_id for each film; pick top one.
+SELECT f.name, COUNT(DISTINCT s.room_id) AS rooms_count
+FROM screening s
+JOIN film f ON s.film_id = f.id
+GROUP BY f.id
+ORDER BY rooms_count DESC
+LIMIT 1;
+
+-- 17. Number of films shown on each day of week, ordered descending
+-- DAYNAME returns weekday; count distinct films per weekday.
+SELECT DAYNAME(start_time) AS weekday, COUNT(DISTINCT film_id) AS films_count
+FROM screening
+GROUP BY weekday
+ORDER BY films_count DESC;
+
+-- 18. Total length of each film shown on 2022-05-28
+-- Join film to screening, filter by date, sum lengths.
+WITH film_screenings AS (
+    SELECT 
+        s.film_id,
+        COUNT(s.id) AS screening_count
+    FROM screening s
+    WHERE DATE(s.start_time) = '2022-05-28'
+    GROUP BY s.film_id
+)
+SELECT 
+    f.id AS film_id,
+    f.name AS film_name,
+    f.length_min * IFNULL(fs.screening_count, 0) AS total_length
+FROM film f
+LEFT JOIN film_screenings fs ON f.id = fs.film_id;
+
+-- OR
+
+SELECT f.id, f.name, SUM(IF(s.id is null, 0, length_min)) as total_length
+FROM film f LEFT JOIN screening s ON f.id = s.film_id AND DATE(s.start_time) = '2022-05-28'
+GROUP BY f.id;
+
+-- 19. Films with showing time above and below average
+-- Compare SUM(length) per film with overall avg SUM(length) per film.
+WITH film_times AS (
+    SELECT f.id, f.name, SUM(f.length_min) AS total_time
+    FROM screening s
+    JOIN film f ON s.film_id = f.id
+    GROUP BY f.id
+),
+avg_time AS (
+    SELECT AVG(total_time) AS avg_total FROM film_times
+)
+SELECT ft.*, 
+       CASE 
+           WHEN ft.total_time > at.avg_total THEN 'Above Average'
+           WHEN ft.total_time < at.avg_total THEN 'Below Average'
+           ELSE 'Equal Average'
+       END AS comparison
+FROM film_times ft, avg_time at;
+
+-- 20. Room with least number of seats
+SELECT r.name, COUNT(se.id) AS seat_count
+FROM room r
+JOIN seat se ON r.id = se.room_id
+GROUP BY r.id
+ORDER BY seat_count ASC
+LIMIT 1;
+
+-- 21. Rooms with seats above average seat count
+SELECT 
+    se.id AS seat_id,
+    r.id AS room_id,
+    r.name AS room_name
+FROM seat se
+JOIN room r ON se.room_id = r.id
+JOIN screening s ON s.room_id = r.id
+LEFT JOIN reserved_seat rs 
+       ON se.id = rs.seat_id
+LEFT JOIN booking b 
+       ON rs.booking_id = b.id 
+       AND b.screening_id = s.id
+       AND b.customer_id
+       WHERE s.id = (
+    SELECT screening_id 
+    FROM booking 
+    WHERE id = 1
+)
+  AND rs.seat_id IS NULL
+  ORDER BY se.id;
+
+-- 22. Seats Mr. Dung CAN book besides his reserved seats in booking id = 1
+-- Get all seats in the same room, exclude ones booked by Dung.
+SELECT 
+    se.id AS seat_id,
+    se.row AS seat_row,
+    se.number AS seat_number,
+    r.name AS room_name
+FROM seat se
+JOIN room r ON se.room_id = r.id
+JOIN screening s ON s.room_id = r.id
+LEFT JOIN reserved_seat rs 
+       ON se.id = rs.seat_id
+LEFT JOIN booking b 
+       ON rs.booking_id = b.id 
+       AND b.screening_id = s.id
+       AND b.customer_id
+       WHERE s.id = (
+    SELECT screening_id 
+    FROM booking 
+    WHERE id = 1
+)
+  AND rs.seat_id IS NULL
+  ORDER BY se.id;
+
+-- 23. Film with total screenings > 10, ordered by total screenings
+SELECT f.name, COUNT(s.id) AS total_screenings
+FROM film f
+JOIN screening s ON f.id = s.film_id
+GROUP BY f.id
+HAVING COUNT(s.id) > 10
+ORDER BY total_screenings DESC;
+
+-- 24. TOP 3 days of week based on total bookings
+SELECT DAYNAME(sc.start_time) AS weekday, COUNT(b.id) AS total_bookings
+FROM booking b
+JOIN screening sc ON b.screening_id = sc.id
+GROUP BY weekday
+ORDER BY total_bookings DESC
+LIMIT 3;
+
+-- 25. Booking rate over screenings for each film, ordered by rate
+-- Rate = total bookings / total screenings.
+WITH film_stats AS (
+    SELECT f.id, f.name,
+           COUNT(DISTINCT s.id) AS total_screenings,
+           COUNT(b.id) AS total_bookings
+    FROM film f
+    JOIN screening s ON f.id = s.film_id
+    LEFT JOIN booking b ON s.id = b.screening_id
+    GROUP BY f.id
+)
+SELECT id, name,
+       total_bookings / total_screenings AS booking_rate
+FROM film_stats
+ORDER BY booking_rate DESC;
+
+-- 26. Which film has rate over/below/equal average (from Q25)
+WITH film_stats AS (
+    SELECT f.id, f.name,
+           COUNT(DISTINCT s.id) AS total_screenings,
+           COUNT(b.id) AS total_bookings
+    FROM film f
+    JOIN screening s ON f.id = s.film_id
+    LEFT JOIN booking b ON s.id = b.screening_id
+    GROUP BY f.id
+),
+film_rates AS (
+    SELECT id, name,
+           total_bookings / total_screenings AS booking_rate
+    FROM film_stats
+),
+avg_rate AS (
+    SELECT AVG(booking_rate) AS avg_booking_rate FROM film_rates
+)
+SELECT fr.*,
+       CASE 
+           WHEN fr.booking_rate > ar.avg_booking_rate THEN 'Above Average'
+           WHEN fr.booking_rate < ar.avg_booking_rate THEN 'Below Average'
+           ELSE 'Equal Average'
+       END AS comparison
+FROM film_rates fr, avg_rate ar;
+
+-- 27. TOP 2 people who enjoy the least total TIME in cinema (only with bookings)
+SELECT c.id AS customer_id,
+       CONCAT(c.first_name, ' ', c.last_name) AS customer_name,
+       SUM(f.length) AS total_minutes
+FROM customer c
+JOIN booking b ON c.id = b.customer_id
+JOIN screening s ON b.screening_id = s.id
+JOIN film f ON s.film_id = f.id
+GROUP BY c.id, c.first_name, c.last_name
+HAVING SUM(f.length) = (
+    SELECT MIN(total_minutes)
+    FROM (
+      SELECT SUM(f.length) AS total_minutes
+      FROM customer c
+      JOIN booking b ON c.id = b.customer_id
+      JOIN screening s ON b.screening_id = s.id
+      JOIN film f ON s.film_id = f.id
+      GROUP BY c.id
+    ) AS t
+)
+OR SUM(f.length) = (
+    SELECT MIN(total_minutes)
+    FROM (
+      SELECT SUM(f.length) AS total_minutes
+      FROM customer c
+      JOIN booking b ON c.id = b.customer_id
+      JOIN screening s ON b.screening_id = s.id
+      JOIN film f ON s.film_id = f.id
+      GROUP BY c.id
+      HAVING SUM(f.length) >
+        (SELECT MIN(total_minutes)
+         FROM (
+           SELECT SUM(f.length) AS total_minutes
+           FROM customer c
+           JOIN booking b ON c.id = b.customer_id
+           JOIN screening s ON b.screening_id = s.id
+           JOIN film f ON s.film_id = f.id
+           GROUP BY c.id
+         ) AS t1)
+    ) AS t2
+)
+ORDER BY total_minutes ASC;
+
+-- OR DENSE_RANK
+
+WITH cte_customer_with_length AS(
+SELECT c.id, c.first_name, c.last_name, length_min 
+FROM customer c JOIN booking b ON c.id = b.customer_id
+				JOIN screening s ON s.id = b.screening_id
+                JOIN film f ON f.id = s.film_id
+GROUP BY c.id, s.id),
+
+cte_customer_with_total_length AS(
+SELECT id, first_name, last_name, SUM(length_min) as total_length
+FROM cte_customer_with_length
+GROUP BY id),
+
+cte_ranking AS(
+SELECT *, DENSE_RANK() OVER (ORDER BY total_length) ranking
+FROM cte_customer_with_total_length)
+
+SELECT *
+FROM cte_ranking
+WHERE ranking >= 2 AND ranking <= 4
+ORDER BY total_length ASC, last_name, first_name;
